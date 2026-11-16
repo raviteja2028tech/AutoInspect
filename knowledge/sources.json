@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "source_id": "SRC-DEMO-001",
+      "title": "Synthetic demonstration price set v1 (authored for this project)",
+      "reference": "Hand-authored by the project team on 2026-11-15 for demonstrating retrieval and costing. Not derived from any supplier quotation, OEM price list or insurer schedule.",
+      "source_type": "synthetic_demo",
+      "entered_date": "2026-11-15",
+      "price_date": null,
+      "notes": "Illustrative demo pricing — not market verified. Replace with sourced records before any real use."
+    }
+  ]
+}

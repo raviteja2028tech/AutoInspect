@@ -1,0 +1,28 @@
+# Runtime dependencies (tested together on Windows 11, Python 3.12.10, CPU only).
+#
+# Install CPU-only PyTorch FIRST so sentence-transformers does not pull a CUDA build
+# (matters on Linux; Windows/macOS PyPI wheels are already CPU/MPS-only):
+#   python -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+#   python -m pip install -r requirements.txt
+#
+# A full transitive snapshot of the tested environment is in requirements-lock.txt.
+
+# UI
+streamlit==1.67.0
+
+# Vision analysis (Gemini Developer API, google-genai SDK)
+google-genai==3.3.0
+
+# Semantic retrieval (local CPU embeddings + NumPy index)
+sentence-transformers==6.3.0
+torch==2.15.0
+numpy==2.5.4
+
+# Image intake / overlays
+pillow==13.0.0
+opencv-python-headless==5.0.0.93
+
+# Contracts, configuration, PDF
+pydantic==2.14.3
+python-dotenv==1.2.4
+reportlab==5.1.0

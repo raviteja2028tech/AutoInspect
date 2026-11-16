@@ -1,0 +1,39 @@
+{
+  "vehicle": {
+    "make": "Maruti",
+    "model": "Swift",
+    "reg_no": ""
+  },
+  "images_analysed": 3,
+  "damages": [
+    {
+      "component": "rear_bumper",
+      "damage_type": "scratch",
+      "severity": "minor",
+      "location": "rear",
+      "confidence": 0.82,
+      "views_supporting": 2,
+      "uncertain": false
+    },
+    {
+      "component": "right_rear_door",
+      "damage_type": "dent",
+      "severity": "minor",
+      "location": "right",
+      "confidence": 0.67,
+      "views_supporting": 1,
+      "uncertain": false
+    }
+  ],
+  "views_seen": [
+    "rear",
+    "right",
+    "front"
+  ],
+  "warnings": [],
+  "images_failed": [],
+  "meta": {
+    "model": "gemini-2.5-flash",
+    "prompt_version": "v1"
+  }
+}

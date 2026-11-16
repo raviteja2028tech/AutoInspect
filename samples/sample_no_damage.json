@@ -1,0 +1,22 @@
+{
+  "vehicle": {
+    "make": "Honda",
+    "model": "City",
+    "reg_no": ""
+  },
+  "images_analysed": 3,
+  "damages": [],
+  "views_seen": [
+    "front",
+    "left",
+    "rear"
+  ],
+  "warnings": [
+    "No visible damage detected."
+  ],
+  "images_failed": [],
+  "meta": {
+    "model": "gemini-2.5-flash",
+    "prompt_version": "v1"
+  }
+}

@@ -1,0 +1,35 @@
+# --- secrets (NEVER commit) ---
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# --- environments ---
+.venv/
+venv/
+env/
+
+# --- generated / caches (all rebuildable) ---
+# .cache/ holds the vector index (kb-index/) and earlier Gemini answers (vision/)
+.cache/
+# legacy index location (now .cache/kb-index/)
+knowledge/index/
+# CLI / smoke-check reports (JSON, PDF, overlays)
+outputs/
+eval/results/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- private photos: keep user images out of Git ---
+data/*
+!data/.gitkeep
+!data/README.md
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

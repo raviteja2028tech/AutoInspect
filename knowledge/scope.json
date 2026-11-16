@@ -1,0 +1,13 @@
+{
+  "currency": "INR",
+  "regions": {
+    "IN-DEMO-METRO": "India - demonstration metro region (illustrative labour rates)",
+    "IN-DEMO-TIER2": "India - demonstration tier-2 city region (illustrative labour rates)"
+  },
+  "declared_vehicle_scope": [
+    {"make": "Hyundai", "model": "i20", "years": "2020-2024", "coverage": "panels, lamps, glass, mirrors, tyres"},
+    {"make": "Hyundai", "model": "i20", "years": "2015-2019", "coverage": "front bumper only (applicability tests)"},
+    {"make": "Maruti Suzuki", "model": "Swift", "years": "2018-2023", "coverage": "front bumper, left headlight only"}
+  ],
+  "not_covered": ["side windows", "component 'other'", "any vehicle or year not listed above"]
+}

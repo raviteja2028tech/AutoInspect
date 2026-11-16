@@ -1,0 +1,59 @@
+{
+  "vehicle": {
+    "make": "",
+    "model": "",
+    "reg_no": ""
+  },
+  "images_analysed": 2,
+  "damages": [
+    {
+      "component": "left_front_door",
+      "damage_type": "dent",
+      "severity": "severe",
+      "location": "left",
+      "confidence": 1.0,
+      "views_supporting": 2,
+      "uncertain": false
+    },
+    {
+      "component": "side_mirror",
+      "damage_type": "crack",
+      "severity": "severe",
+      "location": "left",
+      "confidence": 1.0,
+      "views_supporting": 2,
+      "uncertain": false
+    },
+    {
+      "component": "left_rear_door",
+      "damage_type": "dent",
+      "severity": "moderate",
+      "location": "left",
+      "confidence": 0.97,
+      "views_supporting": 2,
+      "uncertain": false
+    },
+    {
+      "component": "front_bumper",
+      "damage_type": "scratch",
+      "severity": "minor",
+      "location": "front",
+      "confidence": 0.8,
+      "views_supporting": 2,
+      "uncertain": false
+    }
+  ],
+  "views_seen": [
+    "left"
+  ],
+  "warnings": [
+    "Only 2 usable photo(s); 3-5 from different sides are recommended.",
+    "model note: Left front door is heavily crumpled with the side mirror torn off; adjacent panels show secondary impact damage.",
+    "model note: Left front door is heavily crumpled with the side mirror torn off; adjacent panels show secondary impact damage."
+  ],
+  "images_failed": [],
+  "meta": {
+    "model": "gemini-3.8-flash",
+    "prompt_version": "v2"
+  }
+}

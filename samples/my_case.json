@@ -1,0 +1,142 @@
+{
+  "vehicle": {
+    "make": "Hyundai",
+    "model": "i20",
+    "reg_no": ""
+  },
+  "images_analysed": 3,
+  "damages": [
+    {
+      "component": "taillight_right",
+      "damage_type": "lamp_broken",
+      "severity": "severe",
+      "location": "rear",
+      "confidence": 0.99,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "left_front_door",
+      "damage_type": "dent",
+      "severity": "severe",
+      "location": "left",
+      "confidence": 0.98,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "right_fender",
+      "damage_type": "dent",
+      "severity": "severe",
+      "location": "right",
+      "confidence": 0.98,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "front_bumper",
+      "damage_type": "dent",
+      "severity": "severe",
+      "location": "front",
+      "confidence": 0.95,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "left_front_door",
+      "damage_type": "scratch",
+      "severity": "moderate",
+      "location": "left",
+      "confidence": 0.95,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "other",
+      "damage_type": "dent",
+      "severity": "severe",
+      "location": "right",
+      "confidence": 0.95,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "rear_bumper",
+      "damage_type": "dent",
+      "severity": "severe",
+      "location": "rear",
+      "confidence": 0.95,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "side_mirror",
+      "damage_type": "crack",
+      "severity": "severe",
+      "location": "left",
+      "confidence": 0.95,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "wheel_tire",
+      "damage_type": "tire_flat",
+      "severity": "severe",
+      "location": "right",
+      "confidence": 0.95,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "headlight_right",
+      "damage_type": "lamp_broken",
+      "severity": "severe",
+      "location": "front",
+      "confidence": 0.92,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "front_bumper",
+      "damage_type": "scratch",
+      "severity": "severe",
+      "location": "front",
+      "confidence": 0.9,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "left_rear_door",
+      "damage_type": "dent",
+      "severity": "moderate",
+      "location": "left",
+      "confidence": 0.9,
+      "views_supporting": 1,
+      "uncertain": false
+    },
+    {
+      "component": "hood",
+      "damage_type": "dent",
+      "severity": "moderate",
+      "location": "front",
+      "confidence": 0.85,
+      "views_supporting": 1,
+      "uncertain": false
+    }
+  ],
+  "views_seen": [
+    "left",
+    "rear",
+    "right"
+  ],
+  "warnings": [
+    "model note: Right front door has been completely removed or detached from the vehicle.",
+    "model note: Left front door shows severe impact deformation with the side mirror torn off completely.",
+    "model note: Close-up view of the right rear corner showing severe impact damage to the taillight, bumper, and rear quarter panel."
+  ],
+  "images_failed": [],
+  "meta": {
+    "model": "gemini-3.8-flash",
+    "prompt_version": "v1"
+  }
+}

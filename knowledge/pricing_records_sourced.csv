@@ -1,0 +1,1 @@
+record_id,source_id,make,model,year_from,year_to,variant,component,position,operation,part_grade,parts_cost_low,parts_cost_high,labor_hours_low,labor_hours_high,labor_rate_low,labor_rate_high,paint_materials_low,paint_materials_high,currency,region,tax_included,assumptions,applicability_limits,data_quality

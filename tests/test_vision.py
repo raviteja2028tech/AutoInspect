@@ -1,4 +1,4 @@
-"""Offline tests (no API key or internet needed).  Run from vision/:  python -m tests.test_vision"""
+"""Offline tests (no API key or internet needed).  Run from the project root:  python -m pytest tests/test_vision.py"""
 import tempfile
 from pathlib import Path
 

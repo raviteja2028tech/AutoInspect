@@ -258,3 +258,23 @@ Begin implementation now at Phase 1 inside the existing repository. Inspect firs
   - All 85 non-deselected unit tests across all test suites PASS:
     `85 passed, 2 deselected in 8.18s`.
 
+
+---
+
+## Status update — 2026-11-17 (repository cleanup and live fixes)
+
+The project now lives at `PROMPT ENG/vehicle-damage-assessment/` (formerly `vision/vision/`);
+the history above refers to the old path. Test counts above were superseded.
+
+- **Phase 1:** complete. Re-verified: offline suite 109 passed / 2 deselected; semantic smoke passed.
+  Rules bumped to `rules-2026.11-v2` (`G-SEV-CONFLICT`). Pricing is still synthetic only.
+- **Phase 2:** backend complete and **live-tested**: key verified, `v1beta` client pinned (the
+  "Developer instruction is not enabled for api version v1" error was reproduced on v1 and fixed),
+  live vision smoke passed, mismatch guard and de-duplication confirmed live.
+  **Still blocked:** a genuine same-vehicle 3–5 photo case (no suitable photos available) and the
+  held-out accuracy review.
+- **Phase 3:** app launches from a fresh venv with the documented commands; headless-browser QA
+  and rendered-PDF inspection done; JSON/PDF totals parity is checked automatically.
+  Outstanding: browser-driven upload of a real same-vehicle set; macOS/Linux not executed.
+
+Exact commands and outcomes: `docs/validation-log.md`. Next actions: `HANDOFF.md`.

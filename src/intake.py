@@ -87,20 +87,36 @@ def load_image(path) -> ProcessedImage:
         raise IntakeError(f"File not found: {path}")
     if path.suffix.lower() not in ALLOWED_EXT:
         raise IntakeError(f"Unsupported file type '{path.suffix}' (use jpg, png, webp or bmp)")
-    size = path.stat().st_size
+    return _process(lambda: path, path.name, path.stat().st_size)
+
+
+def inspect_image_bytes(name: str, data: bytes) -> ProcessedImage:
+    """Validate and preprocess an in-memory upload exactly as load_image() would.
+
+    Used by the UI to show quality warnings before analysis. The processing is identical, so
+    the returned image_id/sha256 are the ones the pipeline will report for the same file.
+    """
+    name = Path(str(name).replace("\\", "/")).name or "photo"
+    if Path(name).suffix.lower() not in ALLOWED_EXT:
+        raise IntakeError(f"Unsupported file type '{Path(name).suffix}' (use jpg, png, webp or bmp)")
+    return _process(lambda: io.BytesIO(data), name, len(data))
+
+
+def _process(open_source, name: str, size: int) -> ProcessedImage:
+    """Shared decode/validate/resize step. open_source() returns a fresh path or file object."""
     if size > MAX_FILE_BYTES:
-        raise IntakeError(f"{path.name} is too large ({size / 1e6:.1f} MB); limit is {MAX_FILE_BYTES // 2**20} MB")
+        raise IntakeError(f"{name} is too large ({size / 1e6:.1f} MB); limit is {MAX_FILE_BYTES // 2**20} MB")
     if size == 0:
-        raise IntakeError(f"{path.name} is empty")
+        raise IntakeError(f"{name} is empty")
 
     try:
         with _warnings.catch_warnings():
             _warnings.simplefilter("error", Image.DecompressionBombWarning)
-            with Image.open(path) as probe:
+            with Image.open(open_source()) as probe:
                 if probe.width * probe.height > MAX_PIXELS:
-                    raise IntakeError(f"{path.name} has too many pixels ({probe.width}x{probe.height})")
+                    raise IntakeError(f"{name} has too many pixels ({probe.width}x{probe.height})")
                 probe.verify()                       # structural check
-            img = Image.open(path)
+            img = Image.open(open_source())
             img.load()                               # full decode (catches truncated files)
         img = ImageOps.exif_transpose(img)           # respect phone rotation
         img = img.convert("RGB")
@@ -108,11 +124,11 @@ def load_image(path) -> ProcessedImage:
         raise
     except (UnidentifiedImageError, OSError, SyntaxError, ValueError, Image.DecompressionBombWarning,
             Image.DecompressionBombError) as exc:
-        raise IntakeError(f"Cannot open image {path.name}: {exc}") from exc
+        raise IntakeError(f"Cannot open image {name}: {exc}") from exc
 
     ow, oh = img.size
     if min(img.size) < MIN_SIDE:
-        raise IntakeError(f"{path.name} is too small ({img.width}x{img.height}); need at least {MIN_SIDE}px")
+        raise IntakeError(f"{name} is too small ({img.width}x{img.height}); need at least {MIN_SIDE}px")
 
     img.thumbnail((MAX_SIDE, MAX_SIDE))      # keeps aspect ratio, only shrinks
 
@@ -127,7 +143,7 @@ def load_image(path) -> ProcessedImage:
     img.save(buf, format="JPEG", quality=90)
     data = buf.getvalue()
     digest = hashlib.sha256(data).hexdigest()
-    return ProcessedImage(path.name, data, img.width, img.height, blur, warnings,
+    return ProcessedImage(name, data, img.width, img.height, blur, warnings,
                           image_id=f"IMG-{digest[:10]}", sha256=digest, original_width=ow,
                           original_height=oh, file_bytes=size, dhash=_dhash(img))
 

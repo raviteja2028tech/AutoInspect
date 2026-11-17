@@ -213,7 +213,9 @@ def build_assessment(damage_map: dict, vehicle: VehicleInfo | dict | None = None
 
 
 def save_assessment(a: Assessment, path: Path) -> None:
-    Path(path).write_text(a.model_dump_json(indent=2), encoding="utf-8")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(a.model_dump_json(indent=2), encoding="utf-8")
 
 
 def main():

@@ -34,7 +34,7 @@ def main():
     print(f"Validated {len(corpus.records)} records from {len(corpus.sources)} source(s): {dict(types)}")
     print(f"Corpus hash: {corpus.content_hash[:16]}")
     if types.get("synthetic_demo"):
-        print("NOTE: synthetic_demo records are illustrative demo pricing — not market verified.")
+        print("NOTE: synthetic_demo records are illustrative demo pricing - not market verified.")
     if args.check:
         return
     embedder = make_embedder(args.embedder, args.model)

@@ -1,103 +1,80 @@
-# CURRENTIMPLEMENTATION.md — AutoInspect UI Redesign & Implementation Summary
+# UI workspace — design and behaviour (2026-11-17 redesign)
 
-## Overview
-This document records the structural UI redesign of the Vehicle Damage Assessment application into **AutoInspect**, a modern, professional automotive inspection workspace, while preserving all existing backend logic, semantic RAG retrieval, rule-based costing, and ReportLab PDF reporting.
+The Streamlit front end is `app.py` (page config, app bar, routing) plus the `ui/` package. It only
+collects inputs, calls `src.service` and renders the validated `Assessment`; no assessment logic
+lives in the UI. This replaces the 2026-11-15 stepper design (three decorative step cards, HTML
+"card" wrappers that did not actually contain their widgets, sample mode as the default).
 
----
+## Modules
 
-## 1. What Was Redesigned & Implemented
+| Module | Responsibility |
+|---|---|
+| `app.py` | `set_page_config`, stylesheet, app bar (brand, navigation, status chips, Connection popover), top-level error guard |
+| `ui/pages.py` | *New assessment* (default) and *Sample cases* pages; running view; error, conflict and "results ready" panels |
+| `ui/photos.py` | uploader, managed photo list, local pre-check, thumbnails, remove/clear, quality summary |
+| `ui/vehicle.py` | dependent make → model → year → variant selectors, manual entry, pricing coverage, pricing options |
+| `ui/runner.py` | runs the service, shows real stages with measured durations, classifies errors, renders exports |
+| `ui/results.py` | results header + downloads, evidence viewer (fragment), cost summary, Findings / Cost breakdown / Pricing evidence / Technical details tabs |
+| `ui/connection.py` | Gemini key state (missing / not verified / verified / failed), Reload + Verify, cached pricing index |
+| `ui/state.py` | per-mode workspaces, input signatures, stale-result invalidation, reset |
+| `ui/html.py` | `esc()` (HTML), `md()` (Markdown), `code()` (code spans), chip and heading builders |
+| `ui/style.py` | the small stylesheet the theme cannot express |
+| `.streamlit/config.toml` | theme tokens: slate neutrals, one blue accent, semantic colours, system font stack, 16 px base, 8 px radius; `toolbarMode = "minimal"`; `showErrorDetails = "type"` |
 
-### Visual & Structural Design Direction
-- **Professional Palette**: Clean neutral background (`#F8FAFC`), crisp white surface cards (`#FFFFFF`) with subtle border styling (`#E2E8F0`), dark navy text (`#0F172A`), electric blue primary buttons (`#2563EB`), amber badges for uncertainty (`#D97706`), red for severe findings/errors (`#DC2626`), and green for completed states (`#16A34A`).
-- **No Cluttered Sidebars**: Eliminated the oversized, permanent sidebar form. Placed the primary workflow squarely on the main canvas with a clean, focused hierarchy.
-- **Clean Typography**: Replaced all decorative emoji headings with clear, professional labels and system fonts (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`).
+## Visual system
 
-### Application Architecture
+- Surfaces: page `#F4F6F9`, white cards (keyed `st.container(border=True, key="card_*")`) with a
+  `#E2E8F0` border and a subtle shadow. One accent (`#2563EB`). Severity colours match the overlay
+  boxes in `src/overlay.py`: severe red, moderate orange, minor blue. Actions: replace red, repair
+  blue, inspect amber.
+- Typography: system UI font stack, 16 px body, nothing below 14 px except decorative glyphs.
+- Icons: Streamlit Material Symbols on native widgets; the logo is a CSS data-URI SVG.
+- CSS selectors are limited to the app's own `ai-*` classes, documented `st-key-*` classes of
+  keyed containers, `role` attributes and a few `data-testid` hooks. No generated
+  `st-emotion-cache-*` classes. The 3-up/2-up photo grid uses `:has()` as progressive enhancement
+  (fixed 176 px tiles still wrap without it).
+- Layout: max width 1240 px; two columns (7:5 inputs, 3:2 results) that stack below 640 px.
 
-1. **Compact Header**:
-   - Product Identity: **AutoInspect** · *Vehicle Damage Assessment & Grounded Cost Estimation*.
-   - Live Status Indicators: Real-time badges for Semantic RAG (`57 Records (Semantic)`) and Gemini Vision API status (`Connected` vs `Offline`).
-   - Quick Mode Switcher: Toggle between `Sample Benchmarks` and `Live Photo Intake`.
-   - `New Assessment` reset button.
+## Flow and state rules
 
-2. **Three-Step Functional Stepper**:
-   - `Step 1: Vehicle & Evidence` → `Step 2: AI Analysis` → `Step 3: Review & Export`.
-   - Non-destructive step navigation allows users to return to Step 1 without losing uploaded photos or parameters.
-
-3. **Step 1: Inputs & Scenario Selection**:
-   - **Data-Backed Indian Vehicle Selector**:
-     - Connected cascading controls: `Manufacturer` → `Model` → `Year` → `Variant`.
-     - Direct alias and nameplate search bar (e.g. typing "nexon", "swift", "seltos", "baleno") immediately populates dependent selections.
-     - 47 verified models across 13 mainstream Indian OEMs (2022–2026), including discontinued models (Polo 2022, Jazz 2023).
-     - Seamless fallback to "Manual Entry / Other Model" for pre-2022 vehicles, foreign models, and older benchmark fixtures.
-     - **Real-Time Pricing Coverage Feedback Card**: Directly beneath vehicle inputs, shows live status (`Pricing Records Available`, `Partial Pricing Coverage`, `Vehicle Recognized · Pricing Unavailable`, or `Manual Vehicle Entry · Unverified Catalog Match`), verified database record count, and priced components.
-     - **Improved Advanced Pricing Options**: Collapsible expander with human-readable regions (`IN-DEMO-METRO (India - Demonstration Metro Region)`, `IN-DEMO-TIER2 (India - Demonstration Tier-2 City)`), default currency `INR (₹)`, and explanatory OEM vs Aftermarket part grade guidance.
-   - **Sample Benchmark Mode**:
-     - 4 selectable Scenario Cards in a responsive grid:
-       1. *Hyundai i20 — Multi-Angle Collision* (`my_case_v2.json`): 13 findings across panels and lamps. Full evaluation benchmark.
-       2. *Hyundai i20 — Severe Frontal Collision* (`sample_severe.json`): 5 severe findings with heavy replacement recommendations.
-       3. *Maruti Swift — Minor Scratches* (`sample_minor.json`): 2 minor cosmetic findings suitable for refinishing.
-       4. *Honda City — Undamaged Control* (`sample_no_damage.json`): Clean baseline pass-through with zero damage findings.
-     - Scenario selection pre-populates vehicle specs and provides a single prominent **"Run Assessment"** button.
-   - **Live Photo Intake Mode**:
-     - Drag-and-drop file uploader (3–5 photos recommended).
-     - Thumbnail preview strip with filenames, file sizes, and blur/quality feedback.
-     - Low coverage warning banner if fewer than 3 photos are uploaded.
-     - Compact accident narrative text area.
-     - **UI Inconsistency Fixes**:
-       - Live mode header badge explicitly shows `⚠ Vision API: Key Required (Live Mode)` when offline, never showing a stale `Sample Mode` badge.
-       - Vehicle mismatch conflict handling: If `VehicleMismatchError` occurs with `status == "conflict"`, a prominent red banner explains that distinct vehicles cannot be merged, disables analysis, and removes the bypass checkbox. If `status == "uncertain"`, an explicit confirmation checkbox is provided for lighting/angle differences.
-     - Single primary **"Analyze Vehicle Photos"** button (disabled with helpful message when required input is missing or conflicting).
-
-4. **Step 2: Analysis Experience**:
-   - Dedicated visual analysis panel displaying real pipeline stages (intake validation, vision inference, fusion & consistency checks, rule evaluation, RAG retrieval, and cost calculation).
-   - Driven by actual backend callbacks with error recovery.
-
-5. **Step 3: Results Workspace (Two-Column Desktop Layout)**:
-   - **Left Column (58%): Damage Evidence & Localization Viewer**:
-     - Photo thumbnail strip for switching views.
-     - Live bounding box overlay toggle (`Show AI Bounding Boxes` vs `Raw Intake Photo`).
-     - Interactive component filter: selecting a component dynamically filters bounding boxes to that specific component.
-     - Severity color legend (Red: Severe, Orange: Moderate, Blue: Minor).
-     - Honest placeholder card for benchmark fixtures without raw image files explaining that findings and pricing citations remain fully auditable.
-   - **Right Column (42%): Summary & Recommendations**:
-     - Prominent cost hero display with Indian currency formatting (`₹92,650 – ₹1,58,650`).
-     - Subtitle distinguishing complete quotes from partial subtotals.
-     - Recommendation counters: `● X Replace`, `● Y Repair / Refinish`, `● Z Inspection Required`.
-     - Uncertainty evaluation card with points and itemized risk factors.
-     - Concise disclaimers callout (preliminary AI estimate, synthetic pricing notice).
-
-6. **Detailed Workspace Tabs**:
-   - **Component Findings**: Expandable cards showing component name, damage types, severity, recommended action, rule ID, decision rationale, covered damage notes, uncalibrated confidence scores, and alternative scenarios.
-   - **Grounded Pricing Evidence**: Clean table of all retrieved catalog records with Record ID, Source Reference, operation, parts cost, labor hours/rate, cosine similarity score, and synthetic demo badge.
-   - **Report & Exports**: Short printable executive summary, primary **"Download Official PDF Report"** button, secondary **"Download Assessment JSON"** button, raw JSON inspector, and system provenance hashes.
-
----
-
-## 2. Verification Test Results
-
-```
-============================= test session starts =============================
-platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.7.0
-rootdir: C:\Users\ravit\OneDrive\Desktop\PROMPT ENG\vision\vision
-collected 87 items / 2 deselected / 85 selected
-
-tests/test_estimate.py        20/20 PASSED
-tests/test_kb.py              20/20 PASSED
-tests/test_pipeline_v2.py     18/18 PASSED
-tests/test_reporting.py       10/10 PASSED
-tests/test_vehicles.py        10/10 PASSED
-tests/test_vision.py           7/7  PASSED
-
-====================== 85 passed, 2 deselected in 8.18s ========================
-```
-
----
-
-## 3. How to Launch and Experience the Workspace
-
-From `vision/vision/`:
-```powershell
-.\.venv\Scripts\streamlit.exe run app.py
-```
-Open `http://localhost:8501` to use the redesigned AutoInspect application.
+1. **New assessment is the default.** Photos are added through the uploader into a managed list
+   (`st.session_state.photos`); the uploader is reset after each add, so every thumbnail has a real
+   **Remove photo N** button. At most 5 photos; extra files are reported, not silently dropped.
+2. **Local pre-check (no network).** `src.intake.inspect_image_bytes` runs the pipeline's own
+   decode/resize/hash, so tile states (Ready, Blurry, Similar view, Duplicate, Can't be used) and
+   image IDs match what the analysis reports. The count chip shows `added · unique`.
+3. **Vehicle.** Searchable selectboxes (type to filter); each change clears the dependent fields.
+   Variant accepts a custom trim. *Enter vehicle manually* covers years/models outside the
+   2022–2026 catalog. The coverage box shows the real record count from the pricing corpus and the
+   synthetic label. Widget values use `persist_state="session"`, so they survive the results view.
+4. **Analyze** is enabled only when there is ≥ 1 usable photo, make + model + year, a configured
+   key, a loaded pricing index and no unresolved identity conflict; a checklist next to the
+   button says what is missing.
+5. **Running.** The click queues one run (`state.request_run`); the next script run consumes the
+   queued inputs *before* starting (an interrupted run can never re-trigger inference) and shows the
+   pipeline's own progress events with measured durations. Previously analysed photos come from
+   the local vision cache (said explicitly; *Technical details* shows cache vs fresh).
+6. **No stale results.** Each workspace stores the result with the signature of its inputs
+   (photo hashes, vehicle, pricing scope, description / fixture). Any change discards the result,
+   its downloads, errors and conflicts for other inputs. Unchanged inputs show *Results for these
+   inputs are ready → View results*, and Analyze stays disabled — no repeated inference.
+   Viewer, tab and download interactions never call the model (downloads use `on_click="ignore"`;
+   the viewer is an `st.fragment`).
+7. **Results (image-first).** Large photo with numbered regions (compact on-screen overlay; the PDF
+   keeps the full-label overlays), Annotated/Original toggle, thumbnails, **Highlight component**,
+   and the list of findings on the current photo. *Findings* → **Show on photo** links a component
+   to its regions. Cost card: range, tax line if configured, inspection items kept separate,
+   envelope, partial-subtotal or no-price warnings (unknown, not zero), Replace/Repair/Inspect
+   counts, uncertainty reasons, warnings. The disclaimer, synthetic-pricing label and exterior-only
+   limitation are always shown above the results; sample results are labelled
+   *Sample fixture · not a live case*.
+8. **Exports.** JSON and PDF are rendered once per assessment id from the same object; the header
+   shows **Download PDF** (primary) and **Download JSON**, plus the result of
+   `src.report.pdf_totals_match`.
+9. **Errors.** `ui/runner.classify_error` maps failures to readable titles: photos unusable, key
+   missing/rejected, quota/rate limit, network/timeout, analysis failure, unexpected. Messages are
+   key-redacted; tracebacks go to the server log only. Retry re-queues the same inputs. A vehicle
+   identity conflict stops before pricing and lists what the model saw per photo; it clears once
+   the photo set changes.
+10. **Sample cases** are secondary (top navigation), labelled *Offline demo · No Gemini calls*, and
+    pre-fill the vehicle from the fixture (catalog spelling of the trim when it matches).

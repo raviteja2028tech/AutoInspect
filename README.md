@@ -1,326 +1,140 @@
-# AutoInspect — Multimodal Vehicle Damage Assessment
+# AutoInspect — AI-assisted vehicle damage assessment (demo)
 
-AutoInspect analyzes multiple vehicle photographs and an optional accident description to generate a preliminary damage assessment, repair recommendations, a repair-cost range, and downloadable JSON/PDF reports.
+Upload **3–5 photos of the same vehicle**, enter the vehicle details and an optional accident
+description, and get:
 
-> Preliminary AI-assisted assessment only. This application does not approve insurance claims or replace a professional physical inspection.
+image validation & de-duplication → Gemini vision findings with approximate boxes →
+multi-image reconciliation → repair / replace / inspect recommendations (versioned rules) →
+semantic retrieval of pricing records → deterministic cost ranges with uncertainty →
+a Streamlit review workspace → matching **JSON and PDF** downloads.
 
-## Features
+> **Preliminary AI-assisted assessment. Not insurance approval or a substitute for physical
+> inspection.** All prices in this repository are **synthetic demonstration data** ("Illustrative
+> demo pricing — not market verified"). Hidden, mechanical and structural damage is not assessed.
 
-- Upload up to five photographs of the same vehicle.
-- Image rotation correction, resizing, blur warnings and duplicate detection.
-- Gemini-based identification of damaged components, damage types and severity.
-- Approximate damage localization with image overlays.
-- Multi-image consolidation to reduce duplicate assessment.
-- Rule-based repair, replacement or inspection recommendations.
-- Semantic retrieval of applicable parts and labor pricing records.
-- Itemized cost ranges with uncertainty and missing-price information.
-- Sample mode using saved damage-map fixtures.
-- Live mode using the Gemini API.
-- Downloadable structured JSON and PDF assessment reports.
+Status, test results and known limitations: [docs/validation-log.md](docs/validation-log.md).
 
-## Implementation Status
+---
 
-| Module | Current status |
-|---|---|
-| Image intake and preprocessing | Implemented |
-| Gemini vision integration | Implemented; live compatibility requires verification |
-| Multi-image fusion | Implemented |
-| Bounding-box overlays | Implemented; localization quality requires visual review |
-| Repair/replacement rules | Implemented |
-| Semantic pricing retrieval | Implemented; semantic smoke test reported passing |
-| Cost-range calculation | Implemented |
-| Streamlit interface | Implemented |
-| JSON/PDF export | Implemented |
-| Market-verified pricing | Not available in the current demonstration corpus |
-| Complete live workflow | Requires successful verification with genuine vehicle photos |
+## Quick start
 
-Previously reported test results: **76 passed, 1 skipped**. The skipped test covered live Gemini inference. Run the suite locally to confirm the current repository state.
+Requires **Python 3.12**. All commands run from the project root (the folder with `app.py`).
 
-## Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| Python 3.12 | Application and backend logic |
-| Streamlit | Interactive user interface |
-| Google Gemini API | Vision-language analysis |
-| Pillow and OpenCV | Image preprocessing and overlays |
-| Pydantic | Structured output validation |
-| Sentence Transformers | Pricing-document embeddings |
-| NumPy | Vector storage and similarity calculations |
-| Decimal | Monetary calculations |
-| ReportLab | PDF generation |
-| pytest | Automated testing |
-
-The application uses a local vector index; a hosted vector database is not required.
-
-## How It Works
-
-1. **Collect inputs:** Vehicle details, photographs and optional accident description.
-2. **Check photographs:** Validate files, correct orientation, resize images and identify duplicates.
-3. **Analyze visible damage:** Gemini produces structured observations and approximate damage regions.
-4. **Consolidate observations:** Combine findings across photographs while retaining supporting evidence.
-5. **Recommend an action:** Component-specific rules suggest repair, replacement or inspection.
-6. **Retrieve pricing:** Filter applicable records and rank relevant pricing documents semantically.
-7. **Calculate the estimate:** Combine selected parts, labor and paint/material ranges.
-8. **Present results:** Display findings, evidence, assumptions and uncertainty.
-9. **Export reports:** Generate JSON and PDF from the assessment.
-
-The accident description provides context; it should not create damage findings unsupported by the photographs.
-
-## RAG Implementation
-
-The retrieval layer supplies pricing evidence instead of relying on the vision model to invent repair prices.
-
-The process is:
-
-1. Load and validate pricing records and their source metadata.
-2. Convert pricing documents into embeddings using Sentence Transformers.
-3. Persist embeddings and metadata in a local index.
-4. Apply vehicle, year, region, currency, component and operation applicability rules.
-5. Rank compatible records using vector similarity.
-6. Retain selected record IDs and provenance in the assessment.
-7. Calculate monetary values using structured record fields.
-
-Broader or uncertain matches must remain explicitly labeled. A vehicle appearing in a selector does not establish that repair pricing is available for it.
-
-### Pricing limitations
-
-The initial demonstration corpus contains **57 synthetic pricing records**.
-
-These are illustrative values, not verified supplier quotations, OEM price lists or insurer schedules. Reports using them must display:
-
-> Illustrative demo pricing — not market verified.
-
-Actual vehicle/year/component coverage is defined by `knowledge/scope.json` and the pricing records. Do not assume comprehensive Indian-market coverage.
-
-## Cost Calculation
-
-For each selected component plan:
-
-```text
-Low estimate =
-parts_low
-+ labor_hours_low × labor_rate_low
-+ paint_materials_low
-
-High estimate =
-parts_high
-+ labor_hours_high × labor_rate_high
-+ paint_materials_high
-```
-
-Tax is applied only according to configured treatment.
-
-Multiple findings on the same component should contribute to one component plan rather than duplicate replacement charges.
-
-Unknown prices remain unpriced. If any required items are unpriced, the displayed amount is a **partial priced subtotal**, not a complete repair estimate.
-
-The range represents available assumptions and pricing bounds; it is not a statistically validated confidence interval.
-
-## Repository Layout
-
-The current checkout may contain the application inside `vision/vision/`. Run application commands from the directory containing `app.py` and `requirements.txt`.
-
-```text
-<application-root>/
-├── app.py
-├── requirements.txt
-├── .env.example
-├── README.md
-├── PHASE.md
-├── HANDOFF.md
-├── src/
-│   ├── intake.py
-│   ├── analyse.py
-│   ├── schemas.py
-│   ├── vocab.py
-│   ├── pipeline.py
-│   ├── fuse.py
-│   ├── overlay.py
-│   ├── contracts.py
-│   ├── components.py
-│   ├── rules.py
-│   ├── costing.py
-│   ├── estimate.py
-│   ├── service.py
-│   ├── kb/
-│   └── reporting/
-├── knowledge/
-├── samples/
-├── tests/
-├── eval/
-└── data/
-```
-
-Local environments, credentials, private photographs and generated caches should not be committed.
-
-## Installation
-
-### Requirements
-
-- Python 3.12
-- Internet access for dependency installation and the initial embedding-model download
-- Gemini API key and internet access for live analysis
-
-### Windows PowerShell
-
-Open the application directory, then run:
+**Windows (PowerShell)**
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install -r requirements-dev.txt     # or requirements.txt for runtime only
+Copy-Item .env.example .env                        # then edit .env and set GEMINI_API_KEY
+python scripts/check_config.py --verify            # key configured? accepted by Google?
+streamlit run app.py
 ```
 
-If `.venv` already exists, use the existing environment instead of recreating it unnecessarily.
+**macOS / Linux (bash)** — same steps; so far tested on Windows only.
 
-## Run Sample Mode
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu   # avoids CUDA builds on Linux
+python -m pip install -r requirements-dev.txt
+cp .env.example .env                               # then edit .env
+python scripts/check_config.py --verify
+streamlit run app.py
 ```
 
-Open the local address printed in the terminal and select the sample/demo mode.
+Open <http://localhost:8501>. The app opens on **New assessment** (upload photos → confirm the
+vehicle → Analyze → review → download PDF/JSON), which needs a Gemini key. **Sample cases** (top
+navigation) works offline without any key and is labelled as saved fixtures, not live results.
 
-Choose a saved scenario, run the assessment, inspect pricing evidence, and download the reports.
+**First run:** the embedding model `sentence-transformers/all-MiniLM-L6-v2` (~90 MB) is downloaded
+once from Hugging Face into your user cache (`~/.cache/huggingface`, or `HF_HOME`) and reused
+afterwards, offline. The pricing index is then built into `.cache/kb-index/` and rebuilt
+automatically whenever `knowledge/` records change.
 
-Sample mode does not perform fresh image inference. It requires no Gemini key, but dependencies and any required local embedding assets must already be available.
+## Configuring the Gemini key
 
-## Configure Live Gemini Analysis
+1. Get a free key at <https://aistudio.google.com/apikey>.
+2. Put it in **`<project root>/.env`** as `GEMINI_API_KEY=...` (`.env.example` is only a template
+   and is never read; `.env` is git-ignored).
+3. Check without revealing it: `python scripts/check_config.py` (configured?) and
+   `python scripts/check_config.py --verify` (accepted by Google? model available?).
 
-Create an API key at:
+Precedence: a variable set in the **same terminal that launches the app** wins over `.env`;
+`.env` never overrides it. A running Streamlit server keeps the environment it started with —
+after changing `.env`, open **Connection** (top right of the app) and press **Reload
+configuration**, or restart the server; after changing a terminal variable you must restart. The
+header chip distinguishes **Gemini key missing**, **Gemini key not verified** (configured, not yet
+checked), **Gemini verified** (after **Verify key**, which only lists models) and **Gemini check
+failed**. Details and fixes for known errors: [docs/troubleshooting.md](docs/troubleshooting.md).
 
-https://aistudio.google.com/apikey
+The client always uses the Gemini Developer API with **`api_version=v1beta`** (`GEMINI_API_VERSION`).
+`google-genai` 3.x defaults to `v1`, which rejects the system instruction this app sends
+("Developer instruction is not enabled for api version v1").
 
-In the same PowerShell terminal used to launch the application:
+## Everyday commands
 
-```powershell
-$env:GEMINI_API_KEY = Read-Host "Paste your Gemini API key"
-$env:GOOGLE_GENAI_API_VERSION = "v1beta"
+| Task | Command |
+|---|---|
+| Run the app | `streamlit run app.py` |
+| Configuration check (offline, never prints the key) | `python scripts/check_config.py` |
+| Verify key + model with Google (no generation) | `python scripts/check_config.py --verify` |
+| Prove system instructions work (1 tiny request) | `python scripts/check_config.py --generate` |
+| Offline tests | `python -m pytest` |
+| Real embedding-model smoke test | `python -m pytest -m smoke` |
+| Live Gemini smoke test (1 call; PowerShell) | `$env:RUN_LIVE="1"; python -m pytest -m live` |
+| Offline end-to-end check (all fixtures → JSON + PDF) | `python scripts/smoke_check.py` |
+| Assess your photos from the CLI | `python scripts/assess.py a.jpg b.jpg c.jpg --make Hyundai --model i20 --year 2021` |
+| Cost a saved damage map | `python -m src.estimate samples/my_case_v2.json --year 2021 --out outputs/case.json` |
+| Validate / rebuild the pricing index | `python -m src.kb.build_index --check` / `python -m src.kb.build_index` |
+| Validate the vehicle catalog | `python -m src.kb.vehicles --validate` |
+
+CLI outputs go to `outputs/` (git-ignored).
+
+## Repository layout
+
+```
+vehicle-damage-assessment/
+  app.py                    Streamlit entry point: page config, app bar, routing
+  ui/                       presentation only: pages, photos, vehicle, runner, results, connection,
+                            state, style, html (escaping); calls src.service, never re-implements logic
+  .streamlit/config.toml    theme tokens (colours, font, radius) + upload limit + toolbar mode
+  src/
+    settings.py             configuration: project .env, precedence, validation, key diagnostics
+    intake.py               image validation, EXIF, resize, blur, hashing, de-duplication
+    analyse.py              Gemini call per image (v1beta client, retries, cache, redaction)
+    fuse.py                 multi-image reconciliation, identity + narrative checks
+    pipeline.py             analyse_case(): intake -> vision -> fusion (public entry point)
+    components.py rules.py  component grouping, versioned repair/replace/inspect rules
+    kb/                     pricing corpus, embeddings, persisted index, retrieval, vehicle catalog
+    costing.py estimate.py  Decimal arithmetic, totals, uncertainty, build_assessment()
+    service.py              run_live_assessment / run_sample_assessment / export_assessment
+    report.py               render_pdf() adapter  ->  reporting/pdf_report.py (the one PDF engine)
+    overlay.py              approximate boxes drawn on the processed image
+  knowledge/                editable pricing records + sources + vehicle catalog (see its README)
+  samples/                  saved damage-map fixtures, clearly NOT live results (see its README)
+  scripts/                  check_config.py, assess.py, smoke_check.py
+  tests/                    offline tests (+ smoke / live markers)
+  eval/                     optional accuracy-evaluation scripts (need a labelled dataset)
+  docs/                     architecture, troubleshooting, validation log, demo script
+  data/                     your local photos (git-ignored)
+  .cache/                   generated: kb-index/ and vision/ (git-ignored, rebuildable)
 ```
 
-Check key presence without printing the key:
+Public interfaces kept compatible: `src.pipeline.analyse_case(image_paths, vehicle_info=None,
+view_hints=None, use_cache=True, ...)`, `src.service.run_live_assessment / run_sample_assessment`,
+`src.report.render_pdf`, `src.reporting.generate_pdf_report`. Architecture and contracts:
+[docs/architecture.md](docs/architecture.md). Pricing data: [knowledge/README.md](knowledge/README.md).
 
-```powershell
-.\.venv\Scripts\python.exe -c "import os; print('Key found' if os.getenv('GEMINI_API_KEY','').strip() else 'Key missing')"
-```
+## Limitations (honest summary)
 
-Launch the application:
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8503
-```
-
-Open:
-
-http://localhost:8503
-
-These environment settings apply to the current terminal session. Restart the application after changing them.
-
-If the code explicitly sets an API version, that setting may override the environment variable.
-
-Never commit an actual key or include it in screenshots, logs or exported reports.
-
-## Live Demonstration
-
-1. Select live photo intake.
-2. Enter the correct vehicle details.
-3. Upload 3–5 clear photographs of the same damaged vehicle.
-4. Include wider views and a close-up of the damage.
-5. Add an optional factual accident description.
-6. Start analysis.
-7. Review damage findings and annotated photographs.
-8. Inspect recommendations and retrieved pricing evidence.
-9. Review cost ranges, uncertainty and unpriced items.
-10. Download and open the JSON/PDF reports.
-
-Do not combine unrelated vehicle images into one assessment.
-
-The original `front.jpg`, `left.jpg` and `rear.jpg` examples appear to show different vehicles and should not be used together as a genuine same-vehicle demonstration.
-
-## Testing
-
-From the application directory:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests/ -v
-```
-
-Targeted checks:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests/test_smoke.py -v
-.\.venv\Scripts\python.exe -m pytest tests/test_reporting.py -v
-```
-
-Tests cover areas including pricing retrieval, component grouping, cost calculations, image intake, fusion and PDF generation.
-
-Offline tests do not establish real-world vision accuracy. A skipped live test is not evidence that live analysis works.
-
-## Troubleshooting
-
-### “Gemini API Key Required”
-
-Set `GEMINI_API_KEY` in the same terminal that launches Streamlit, then restart the application.
-
-### “Developer instruction is not enabled for api version v1”
-
-Use `v1beta`. If environment configuration is overridden, preserve existing client options and explicitly configure:
-
-```python
-http_options=types.HttpOptions(api_version="v1beta")
-```
-
-### “No vehicle visible”
-
-Check that the uploaded files are actual vehicle photographs.
-
-If the previews show cars but the model describes unrelated content, investigate stale uploads, temporary-file reuse, image payloads and cache identity. Do not disable non-vehicle validation.
-
-### Quota or rate-limit error
-
-Wait for the applicable quota reset and avoid repeated submissions. Use the clearly labeled sample mode if live inference is temporarily unavailable.
-
-### Missing model or unavailable model
-
-Check `GEMINI_MODEL` and select an image-capable model available to the configured API project. Do not assume old sample metadata names remain valid.
-
-### Pricing unavailable
-
-The vehicle, year, component or operation may be outside the catalog. Keep the item unpriced rather than substituting an incompatible part.
-
-### Port already in use
-
-Use another port and open the address printed by the new process:
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8504
-```
-
-### Old results remain visible
-
-Start a new assessment. Persistent stale results indicate session-state invalidation needs fixing.
-
-## Known Limitations
-
-- Exterior photographs cannot establish hidden mechanical or structural damage.
-- Reflections, poor lighting and occlusion can cause incorrect findings.
-- Bounding boxes are approximate.
-- Model confidence is not calibrated accuracy.
-- Multi-image consistency checks do not prove vehicle identity.
-- Pricing is illustrative and limited to catalog coverage.
-- Repair recommendations require professional confirmation.
-- Complete live behavior must be verified with suitable images and a working API configuration.
-
-## Next Validation Steps
-
-- Complete a fresh same-vehicle upload-to-PDF assessment.
-- Visually review localization and component identification.
-- Evaluate against labeled damage examples.
-- Replace synthetic records with attributable regional pricing.
-- Expand vehicle coverage only when supported by verified data.
-- Keep setup instructions and automated tests synchronized with repository changes.
-
-## Disclaimer
-
-AutoInspect is an educational decision-support prototype. It does not determine insurance coverage, liability, settlement amounts, roadworthiness or final repair authorization.
+- Pricing is synthetic and covers Hyundai i20 (2020–2024) fully, plus a few Swift / older-i20 rows.
+  Other vehicles return "no applicable price records" (unknown, never zero).
+- Boxes are approximate vision-language-model localisation, not segmentation or measurement.
+- Model scores are uncalibrated; the uncertainty level is a documented heuristic, not a statistic.
+- No measured accuracy is claimed. `eval/` contains tooling but no evaluation has been run.
+- The same-vehicle check is a fallible consistency check, not identity verification.
+- A genuine 3–5 photo same-vehicle case has not been run yet (no such photo set is in the repo).

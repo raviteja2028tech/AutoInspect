@@ -20,20 +20,27 @@ def _font(size: int):
     return ImageFont.load_default()
 
 
-def draw_overlay(jpeg_bytes: bytes, image_id: str, observations: list[Observation]) -> tuple[bytes, list[str]]:
-    """Return (JPEG bytes with boxes, list of labels without a box on this image)."""
+def draw_overlay(jpeg_bytes: bytes, image_id: str, observations: list[Observation],
+                 compact: bool = False) -> tuple[bytes, list[str]]:
+    """Return (JPEG bytes with boxes, list of labels without a box on this image).
+
+    compact=True labels each box with its finding ID only, in a larger font, for on-screen
+    viewers that list the findings beside the image. The default (full labels) is used for
+    the PDF report.
+    """
     img = Image.open(io.BytesIO(jpeg_bytes)).convert("RGB")
     draw = ImageDraw.Draw(img)
     w, h = img.size
-    font = _font(max(14, w // 60))
+    font = _font(max(18, w // 36) if compact else max(14, w // 60))
     unboxed = []
     for o in observations:
         if image_id not in o.image_ids:
             continue
         box = o.bbox_by_image.get(image_id)
-        label = f"{o.damage_id} {o.component} {o.damage_type} ({o.severity})"
+        full_label = f"{o.damage_id} {o.component} {o.damage_type} ({o.severity})"
+        label = o.damage_id if compact else full_label
         if not box:
-            unboxed.append(label)
+            unboxed.append(full_label)
             continue
         x0, y0, x1, y1 = box[0] * w, box[1] * h, box[2] * w, box[3] * h
         color = _COLORS.get(o.severity, (0, 0, 0))

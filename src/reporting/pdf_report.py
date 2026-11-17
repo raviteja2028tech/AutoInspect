@@ -672,22 +672,26 @@ def _build(a: Mapping, path: Path, images: list[tuple[str, str]]) -> None:
         story += bullets(_as_list(a.get(key)), empty)
 
     # ---------------------------------------------------------------- 6. images
-    story.append(P("Image evidence", h2))
+    heading = P("Image evidence", h2)
     if not images:
+        story.append(heading)
         story.append(P("<i>No images were attached to this report.</i>", small))
     max_w, max_h = frame_w, 95 * mm
     for n, (img_path, caption) in enumerate(images, 1):
+        lead = [heading] if n == 1 else []          # keep the heading on the same page as image 1
         label = f"Image {n}: {_esc(caption or os.path.basename(img_path) or img_path)}"
         if not img_path or not os.path.isfile(img_path):
+            story.extend(lead)
             story.append(P(f"<b>{label}</b> \u2014 <font color='#8a1c1c'>image not available: file "
                            f"not found ({_esc(img_path or 'no path given')}).</font>", small))
             continue
         try:
             iw, ih = ImageReader(img_path).getSize()
             w, h = _scaled_size(float(iw), float(ih), max_w, max_h)
-            story.append(KeepTogether([Image(img_path, width=w, height=h),
-                                       P(label, small), Spacer(1, 6)]))
+            story.append(KeepTogether(lead + [Image(img_path, width=w, height=h),
+                                              P(label, small), Spacer(1, 6)]))
         except Exception as exc:  # unreadable / unsupported image
+            story.extend(lead)
             story.append(P(f"<b>{label}</b> \u2014 <font color='#8a1c1c'>image could not be read "
                            f"({_esc(type(exc).__name__)}).</font>", small))
 

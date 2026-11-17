@@ -4,7 +4,7 @@
 2. For about 50 photos, write the image file name and the WORST severity you see:
    none / minor / moderate / severe
    (Use the same definitions as the prompt. Better: let a teammate label too.)
-3. Run from the vision/ folder:
+3. Run from the project root:
 
     python eval/evaluate_severity.py --labels eval/severity_labels.csv --images-dir data/my_images
 """

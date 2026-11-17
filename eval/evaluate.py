@@ -1,6 +1,6 @@
 """Evaluate damage-TYPE detection against the CarDD ground truth.
 
-Run from the vision/ folder (after setting GEMINI_API_KEY):
+Run from the project root (key in .env or the environment):
 
     python eval/evaluate.py --annotations data/CarDD/<annotations>.json --images-dir data/CarDD/<images folder> --n 60
 
